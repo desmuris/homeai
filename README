@@ -1,1 +1,33 @@
+# Bookmark Sorter
 
+This repository contains a utility script `bookmark_sorter.py` that can parse an exported bookmarks HTML file and sort the links into a simple category tree.
+
+## Features
+
+- Reads a standard browser bookmark HTML export.
+- Downloads each page and attempts to classify it by:
+  1. **Content type** (video, article, tool, service)
+  2. **Domain** (crypto, self-improvement, education)
+  3. **Theme** (Python, women's psychology, cryptocurrency projects)
+- Creates a directory tree `sorted_bookmarks/<content type>/<domain>/<theme>.txt` with the URLs placed accordingly.
+- Any unreachable URLs are written to `sorted_bookmarks/unreachable.txt`.
+
+The categorisation is basic and uses keyword heuristics from the domain and page contents. You can adjust the keyword lists in the script as needed.
+
+## Usage
+
+```bash
+pip install -r requirements.txt  # install dependencies
+python3 bookmark_sorter.py path/to/bookmarks.html --out output_folder
+```
+
+Use `--limit N` to process only the first `N` bookmarks when testing.
+
+## Requirements
+
+The script depends on:
+
+- `requests`
+- `beautifulsoup4`
+
+You can install them manually or by using a requirements file.
