@@ -1,12 +1,16 @@
 import os
 import re
+import json
 import argparse
 import requests
+import openai
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from collections import defaultdict
 
-# Basic keyword sets for simple categorization
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Basic keyword sets retained as a fallback if the API call fails
 CONTENT_TYPES = {
     'video': ['youtube.com', 'vimeo.com', 'video'],
     'article': ['blog', 'news', 'article'],
@@ -50,8 +54,42 @@ def fetch_page(url, timeout=10):
         return None
 
 
+def openai_categorize(url, text):
+    """Use OpenAI API to categorize content. Returns tuple or None on error."""
+    if not openai.api_key:
+        return None
+    snippet = text[:2000] if text else ""
+    prompt = (
+        "URL: {url}\n"
+        "Content:\n{snippet}\n\n"
+        "Return a JSON object with keys content_type, domain, and theme."
+        " Use simple one- or two-word values."
+    ).format(url=url, snippet=snippet)
+    try:
+        resp = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You classify web pages."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.3,
+        )
+        data = json.loads(resp.choices[0].message["content"].strip())
+        return (
+            data.get("content_type", "other").lower(),
+            data.get("domain", "other").lower(),
+            data.get("theme", "general"),
+        )
+    except Exception:
+        return None
+
+
 def categorize(url, text):
-    """Return content_type, domain_category, theme based on heuristics."""
+    """Return content_type, domain_category, theme using OpenAI with fallback."""
+    result = openai_categorize(url, text)
+    if result:
+        return result
+
     parsed = urlparse(url)
     netloc = parsed.netloc.lower()
     content_type = 'other'

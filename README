@@ -12,7 +12,12 @@ This repository contains a utility script `bookmark_sorter.py` that can parse an
 - Creates a directory tree `sorted_bookmarks/<content type>/<domain>/<theme>.txt` with the URLs placed accordingly.
 - Any unreachable URLs are written to `sorted_bookmarks/unreachable.txt`.
 
-The categorisation is basic and uses keyword heuristics from the domain and page contents. You can adjust the keyword lists in the script as needed.
+The categorisation uses the OpenAI API to analyse each page. The model is asked
+to provide a content type, domain category and theme based on the page text and
+URL. Any links that cannot be fetched are placed in `sorted_bookmarks/unreachable.txt`.
+
+Set the environment variable `OPENAI_API_KEY` to your API key before running
+the script.
 
 ## Usage
 
@@ -29,5 +34,6 @@ The script depends on:
 
 - `requests`
 - `beautifulsoup4`
+- `openai`
 
 You can install them manually or by using a requirements file.
